@@ -88,7 +88,7 @@ class OVPNFile(object):
 
    @proto.setter
    def proto(self, value):
-      if value.lower() not in ("tcp", "udp"): raise ValueError()
+      if value.lower() not in ("tcp", "udp", "tcp6", "udp6"): raise ValueError()
       self.content["proto"] = [value.lower()]
 
    @property
@@ -251,7 +251,7 @@ class APCFile(object):
 
    @proto.setter
    def proto(self, value):
-      if value.lower() not in ("tcp", "udp"): raise ValueError()
+      if value.lower() not in ("tcp", "udp", "tcp6", "udp6"): raise ValueError()
       self.content["protocol"] = value.lower()
 
 
