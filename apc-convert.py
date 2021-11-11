@@ -8,8 +8,8 @@ from Crypto.PublicKey import RSA
 CERT_START = "-----BEGIN CERTIFICATE-----"
 CERT_END   = "-----END CERTIFICATE-----"
 
-RSA_START  = "-----BEGIN RSA PRIVATE KEY-----"
-RSA_END    = "-----END RSA PRIVATE KEY-----"
+RSA_START  = "-----BEGIN PRIVATE KEY-----"
+RSA_END    = "-----END PRIVATE KEY-----"
 
 # Python 2.x Workaround
 if hasattr(__builtins__, 'raw_input'):
@@ -136,23 +136,38 @@ class OVPNFile(object):
       self.content["auth-user-pass"] = ["login.txt"]
       self.login = username + "\n" + password
 
-   def _parseLine(self, line):
+   def _parseLine(self, line, name=None):
       line = line.strip()
-      if len(line)==0 or line[0] in ("#", ";"): return
-      line = line.split(" ")
-      key = line[0]
-      val = " ".join(line[1:])
-      
-      values = self.content.get(key, [])
-      values.append(val)
-      self.content[key] = list(set(values))
+      if len(line)==0 or line[0] in ("#", ";", "<", ">"): return
+
+      if name:
+          section = self.content.get(name, [''])
+          section[0] += line
+          self.content[name] = section
+      else:
+          line = line.split(" ")
+          key = line[0]
+          val = " ".join(line[1:])
+          
+          values = self.content.get(key, [])
+          values.append(val)
+          self.content[key] = list(set(values))
 
 
    def load(self, filestream):
       self.__init__()
       try:
+        section_name = None
+
         for line in filestream:
-            self._parseLine(line)
+            if not section_name and line.startswith('<'):
+                section_name = line[1:line.index('>')]
+
+            self._parseLine(line, section_name)
+
+            if line.startswith('</'):
+                section_name = None
+
       except StopIteration:
         pass
 
